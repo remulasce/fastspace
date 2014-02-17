@@ -1,0 +1,8 @@
+attribute vec4 vPosition;
+
+uniform mat4 vpMatrix;
+uniform mat4 mMatrix;
+
+void main() {
+	gl_Position = vpMatrix * (mMatrix * vPosition);
+}

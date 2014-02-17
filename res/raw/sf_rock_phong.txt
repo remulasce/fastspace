@@ -1,0 +1,20 @@
+precision mediump float;
+
+
+varying lowp float useLighting;	//Should we bother doing calculations
+varying vec3 v_fNor;	//Normalized normal
+varying vec3 v_lAngle;	//Normalized direction of light
+varying lowp float v_fDist;	//Distance from fragment to light
+
+void main() {
+	if (useLighting > 0.5) {
+		float l			= dot(v_fNor, v_lAngle) / v_fDist;
+		if (l < .1) {
+			l = .1;
+		}
+		gl_FragColor	= vec4(l, l, l, 1.0);		//These are ls, not 1s. Mostly
+	}
+	else {
+		gl_FragColor	= vec4(.1, .1, .1, 1.0);
+	}
+}

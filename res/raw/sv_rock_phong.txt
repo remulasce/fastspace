@@ -1,0 +1,47 @@
+
+//Phong shading for rocks. Per-fragment normal calculation for single light source.
+
+attribute vec4 a_vPos;		//Vertex position
+attribute vec3 a_vNor;		//Vertex normal
+
+//Matrix transformations
+uniform mat4 u_mMat;
+uniform mat4 u_vpMat;
+
+//Light position
+uniform vec3 u_lPos;
+
+
+//Use fancy lighting. If we're too far away, just use diffuse.
+varying lowp float useLighting;
+//Interpolated normal
+varying vec3 v_fNor;
+//Interpolated vector from fragment to source 
+varying vec3 v_lAngle;
+//Interpolated distance from light
+varying lowp float v_fDist;
+
+void main() {
+	gl_Position		= u_vpMat * (u_mMat * a_vPos);
+	
+	
+	vec3 toVec		= u_lPos - vec3(u_mMat * a_vPos);	//Vector from vertex to light
+	lowp float dist	= length(toVec);					//Distance from vertex to light
+	
+	if (dist > 10.0) {
+		useLighting = 0.0;
+	}
+	
+	else {
+	
+		useLighting = 10.0;
+		toVec			= normalize(toVec);					//Normalize vector to calculate angle diff
+		
+		//Now pass stuff on
+		v_fDist			= dist;
+		v_fNor			= a_vNor;
+		v_lAngle		= toVec;
+		
+	}
+	
+}

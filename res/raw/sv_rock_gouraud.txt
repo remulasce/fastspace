@@ -1,0 +1,56 @@
+
+//Gouraud shading for rocks. Per-vertex lighting for single light source.
+
+
+
+
+attribute vec4 a_vPos;
+attribute vec3 a_vNor;
+
+uniform mat4 u_mMat;
+uniform mat4 u_vpMat;
+
+uniform vec3 u_lPos;
+
+
+const lowp float	LIGHT_CUTOFF_D	= 100.0;		//Point after which lighting is 0
+const lowp float	LIGHT_CUTOFF_A	= 1.0;			//Light cone dot product for pass
+const lowp float	LIGHT_APRON_A	= .02;			//Dimming apron about cutoff
+const lowp float	LIGHT_CONE_C	= 20.0;			//How much brighter the cone is than diffuse
+const lowp float	LIGHT_INTENSITY	= 0.4;			//Light brightness
+const mediump float AL				= .1;			//Ambient light intensity
+
+varying vec4 v_color;	//Completely calculated color straight interpolated cross poly
+
+
+void main() {
+	//Position transform
+	vec4 scr_pos	= u_vpMat * u_mMat * a_vPos;
+	gl_Position		= scr_pos;
+	
+	//Lighting calculation
+	vec3 toVec			= u_lPos - vec3(u_mMat * a_vPos);
+	lowp float dist		= length(toVec);
+	vec3 norToVec		= normalize(toVec);
+	
+	if(dist > LIGHT_CUTOFF_D) {
+		v_color				= vec4(AL,AL,AL,1);
+		return;
+	}
+	lowp float cone_factor	= 1.0;
+	lowp float cone_dot		= dot(norToVec, vec3(0,0,1));
+	if (cone_dot  > LIGHT_CUTOFF_A) {
+		//Additional cone factor
+		cone_factor = LIGHT_CONE_C;
+	}
+	else if (cone_dot > LIGHT_CUTOFF_A - LIGHT_APRON_A) {
+		cone_factor = max(1.0, LIGHT_CONE_C * (cone_dot - (LIGHT_CUTOFF_A - LIGHT_APRON_A)) / LIGHT_APRON_A);
+	}
+	//Color of vertex is interpolated cross thing
+	mediump float l		= AL + max(0.0,
+								1.4 * dot(a_vNor, norToVec) / dist) *
+								LIGHT_INTENSITY *
+								cone_factor;
+	v_color				= vec4(l, l, l, 1);
+
+}
